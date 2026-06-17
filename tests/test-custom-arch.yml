@@ -1,0 +1,23 @@
+name: Test custom arch input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install PowerShell
+        run: |
+          which pwsh && echo "pwsh already installed" && exit 0
+          apt-get update -qq && apt-get install -y -qq powershell || \
+          (wget -q https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb && \
+           dpkg -i /tmp/packages-microsoft-prod.deb && \
+           apt-get update -qq && apt-get install -y -qq powershell)
+      - id: action
+        uses: .
+        with:
+          arch: x86
+      - name: Assert action completed without error for x86 arch
+        run: |
+          echo "Action completed successfully on Linux with arch=x86 (non-Windows skip path)"
+          echo "PASS"
