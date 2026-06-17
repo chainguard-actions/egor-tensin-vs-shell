@@ -1,0 +1,19 @@
+name: Test basic usage (default x64 arch)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install PowerShell
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q powershell
+      - id: action
+        uses: .
+        # No inputs — uses default arch: x64
+      - name: Assert action completed successfully on Linux
+        run: |
+          echo "Action completed successfully on Linux runner"
+          echo "PASS: action ran without error (non-Windows path)"

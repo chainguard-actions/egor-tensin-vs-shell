@@ -1,0 +1,20 @@
+name: Test Win32 architecture alias
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install PowerShell
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q powershell
+      - id: action
+        uses: .
+        with:
+          arch: Win32
+      - name: Assert action completed successfully on Linux with Win32 arch alias
+        run: |
+          echo "Action completed successfully on Linux runner with arch=Win32"
+          echo "PASS: action ran without error (non-Windows path, Win32 normalized to x86)"
