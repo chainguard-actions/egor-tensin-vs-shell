@@ -1,4 +1,4 @@
-name: Test x86 arch
+name: Test arm arch normalization
 on:
   workflow_dispatch:
 jobs:
@@ -20,8 +20,8 @@ jobs:
       - id: action
         uses: .
         with:
-          arch: x86
-      - name: Assert action completed without error for x86 arch
+          arch: arm
+      - name: Assert action completed without error for arm arch
         run: |
-          echo "Action completed successfully with x86 arch"
-          echo "PASS: action accepted x86 arch without error"
+          echo "Action completed successfully with arm arch (normalized to arm64)"
+          echo "PASS: action accepted arm arch without error"

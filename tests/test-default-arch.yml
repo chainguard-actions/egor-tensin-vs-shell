@@ -1,4 +1,4 @@
-name: Test x86 arch
+name: Test default arch
 on:
   workflow_dispatch:
 jobs:
@@ -19,9 +19,8 @@ jobs:
           pwsh --version
       - id: action
         uses: .
-        with:
-          arch: x86
-      - name: Assert action completed without error for x86 arch
+        # No arch input - should default to x64
+      - name: Assert action completed without error using default arch
         run: |
-          echo "Action completed successfully with x86 arch"
-          echo "PASS: action accepted x86 arch without error"
+          echo "Action completed successfully with default arch (x64)"
+          echo "PASS: action ran without error using default arch"

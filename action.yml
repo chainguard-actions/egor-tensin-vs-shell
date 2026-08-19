@@ -25,7 +25,10 @@ runs:
         curl "${args[@]}" \
           -d "{\"repository\":\"${GITHUB_REPOSITORY}\",\"action\":\"${GITHUB_ACTION_REPOSITORY}\"}" \
           "https://actions.enforce.dev/actions/v1/record" >/dev/null 2>&1 || true
-    - run: |
+    - env:
+        INPUT_ARCH: ${{ inputs.arch }}
+        RUNNER_OS_VALUE: ${{ runner.os }}
+      run: |
         function Normalize-Arch {
             param(
                 [Parameter(Mandatory=$true)]
@@ -45,7 +48,7 @@ runs:
             }
         }
 
-        New-Variable arch -Value (Normalize-Arch $env:INPUT_ARCH) -Option Constant
+        New-Variable arch -Value (Normalize-Arch "$env:INPUT_ARCH") -Option Constant
 
         function Locate-VSWhere {
             $path = Get-Command 'vswhere' -ErrorAction SilentlyContinue
@@ -142,7 +145,7 @@ runs:
             #     * https://stackoverflow.com/q/53583677/514684
             #     * https://stackoverflow.com/q/53562942/514684
 
-            $json = $( & "${env:COMSPEC}" /s /c "`"$script_path`" -arch=$Arch -no_logo && pwsh -Command `"Get-ChildItem env: | Select-Object Name,Value | ConvertTo-Json`"")
+            $json = $(& "${env:COMSPEC}" /s /c "`"$script_path`" -arch=$Arch -no_logo && pwsh -Command `"Get-ChildItem env: | Select-Object Name,Value | ConvertTo-Json`"")
             if ($LASTEXITCODE -ne 0) {
                 throw $json
             } else {
@@ -156,8 +159,8 @@ runs:
             }
         }
 
-        if ($env:RUNNER_OS -ne 'Windows') {
-            echo "Not going to set up a Visual Studio shell on $env:RUNNER_OS"
+        if ($env:RUNNER_OS_VALUE -ne 'Windows') {
+            echo ('Not going to set up a Visual Studio shell on ' + $env:RUNNER_OS_VALUE)
         } else {
             $old_values = @{}
             Get-ChildItem env: | %{ $old_values.Add($_.Name, $_.Value) }
@@ -186,13 +189,11 @@ runs:
 
             # Update the current environment (sanitize values to strip newlines):
             Get-ChildItem env: | %{
-                $safe_value = ($_.Value -replace "`r`n|`r|`n", '')
-                echo "$($_.Name)=$safe_value" >> $env:GITHUB_ENV
+                $name = $_.Name -replace "`r|`n", ''
+                $value = $_.Value -replace "`r|`n", ''
+                echo "$name=$value" >> $env:GITHUB_ENV
             }
         }
-      env:
-        INPUT_ARCH: ${{ inputs.arch }}
-        RUNNER_OS: ${{ runner.os }}
       shell: pwsh
 branding:
   icon: star

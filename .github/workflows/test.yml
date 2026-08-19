@@ -1,0 +1,120 @@
+name: Test
+
+on:
+  push:
+  schedule:
+    # Weekly, at 00:30 UTC on Friday (somewhat randomly chosen).
+    - cron: '30 00 * * 5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-2022
+          - windows-2025
+          - windows-2025-vs2026
+        arch:
+          - x86
+          - Win32
+          - x64
+
+        include:
+          # Prettier run names.
+          - {os: windows-2022, name: Windows 2022 / VS 2022}
+          - {os: windows-2025, name: Windows 2025 / VS 2022}
+          - {os: windows-2025-vs2026, name: Windows 2025 / VS 2026}
+
+          # Scripting helpers.
+          # Also, see: https://learn.microsoft.com/en-us/cpp/overview/compiler-versions?view=msvc-170
+          - {os: windows-2022, condition: '$version -ge 1930 -and $version -lt 1950'}
+          - {os: windows-2025, condition: '$version -ge 1930 -and $version -lt 1950'}
+          - {os: windows-2025-vs2026, condition: '$version -ge 1950'}
+
+          # Expected VSCMD_ARG_TGT_ARCH value.
+          - {arch: x86,   expected_arch: x86}
+          - {arch: Win32, expected_arch: x86}
+          - {arch: x64,   expected_arch: x64}
+
+          # The ARM images seem to be maintained here:
+          # https://github.com/actions/partner-runner-images/tree/main/images
+          - os: windows-11-arm
+            name: Windows 11 ARM / VS 2022
+            arch: arm64
+            expected_arch: arm64
+            condition: '$version -ge 1930 -and $version -lt 1950'
+
+          - os: windows-11-arm
+            name: Windows 11 ARM / VS 2022
+            arch: arm
+            expected_arch: arm64
+            condition: '$version -ge 1930 -and $version -lt 1950'
+
+    runs-on: '${{ matrix.os }}'
+
+    name: '${{ matrix.name }} / ${{ matrix.arch }}'
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: cl.exe shouldn't be found
+        run: |
+          $(Get-Command cl -ErrorAction SilentlyContinue) -and $(throw "cl.exe was found!")
+
+      - name: Set up Visual Studio shell
+        uses: ./
+        with:
+          arch: '${{ matrix.arch }}'
+
+      - name: cl.exe should be found now
+        run: |
+          $(Get-Command cl -ErrorAction SilentlyContinue) -or $(throw "cl.exe wasn't found!")
+
+      - name: cl.exe /? for debugging
+        run: cl /?
+
+      - name: Check cl.exe version
+        env:
+          MATRIX_CONDITION: ${{ matrix.condition }}
+        run: |
+          echo _MSC_VER > test.c
+          $version = cl /nologo /EP test.c | Select-Object -Last 1
+          $version = [int]$version
+          echo "Version: $version"
+          $condition = $env:MATRIX_CONDITION
+          # Validate the condition string against a strict allowlist pattern before
+          # evaluating it, to prevent script injection via matrix.condition.
+          # Accepted forms:
+          #   $version -ge N
+          #   $version -ge N -and $version -lt M
+          if ($condition -match '^\$version -ge (\d+)$') {
+            $result = $version -ge [int]$Matches[1]
+          } elseif ($condition -match '^\$version -ge (\d+) -and \$version -lt (\d+)$') {
+            $result = ($version -ge [int]$Matches[1]) -and ($version -lt [int]$Matches[2])
+          } else {
+            throw "Unrecognised condition format: $condition"
+          }
+          $result -or $(throw 'Unexpected cl.exe version')
+
+      - name: Build foo.exe
+        run: |
+          cl.exe /EHsc foo.cpp
+          .\foo.exe
+
+      - name: Verify target architecture
+        env:
+          MATRIX_EXPECTED_ARCH: ${{ matrix.expected_arch }}
+        run: |
+          $actual = $env:VSCMD_ARG_TGT_ARCH
+          $expected = $env:MATRIX_EXPECTED_ARCH
+          $($expected -eq $actual) -or $(throw "Unexpected target architecture: $actual")
