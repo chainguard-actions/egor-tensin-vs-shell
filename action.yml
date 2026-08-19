@@ -27,7 +27,7 @@ runs:
           "https://actions.enforce.dev/actions/v1/record" >/dev/null 2>&1 || true
     - env:
         INPUT_ARCH: ${{ inputs.arch }}
-        RUNNER_OS_VAL: ${{ runner.os }}
+        RUNNER_OS: ${{ runner.os }}
       run: |
         function Locate-VSWhere {
             $path = Get-Command 'vswhere' -ErrorAction SilentlyContinue
@@ -73,9 +73,9 @@ runs:
             }
 
             $arch = $env:INPUT_ARCH
-            $allowed_archs = @('x64', 'x86', 'arm', 'arm64')
+            $allowed_archs = @('x86', 'x64', 'arm', 'arm64')
             if ($allowed_archs -notcontains $arch) {
-                throw "Invalid arch value '$arch'. Must be one of: $($allowed_archs -join ', ')"
+                throw "Invalid arch value: '$arch'. Must be one of: $($allowed_archs -join ', ')"
             }
             Import-Module $module_path
             Enter-VsDevShell -VsInstanceId $info.instanceId -SkipAutomaticLocation -DevCmdArguments "-arch=$arch -no_logo"
@@ -100,9 +100,9 @@ runs:
             }
 
             $arch = $env:INPUT_ARCH
-            $allowed_archs = @('x64', 'x86', 'arm', 'arm64')
+            $allowed_archs = @('x86', 'x64', 'arm', 'arm64')
             if ($allowed_archs -notcontains $arch) {
-                throw "Invalid arch value '$arch'. Must be one of: $($allowed_archs -join ', ')"
+                throw "Invalid arch value: '$arch'. Must be one of: $($allowed_archs -join ', ')"
             }
             $json = $(& "${env:COMSPEC}" /s /c "`"$script_path`" -arch=$arch -no_logo && pwsh -Command `"Get-ChildItem env: | ConvertTo-Json`"")
             if ($LASTEXITCODE -ne 0) {
@@ -115,9 +115,9 @@ runs:
             }
         }
 
-        $runnerOs = $env:RUNNER_OS_VAL
-        if ($runnerOs -ne 'Windows') {
-            echo "Not going to set up a Visual Studio shell on $runnerOs"
+        $runner_os = $env:RUNNER_OS
+        if ($runner_os -ne 'Windows') {
+            echo "Not going to set up a Visual Studio shell on $runner_os"
         } else {
             $old_values = @{}
             Get-ChildItem env: | %{ $old_values.Add($_.Name, $_.Value) }
@@ -144,11 +144,14 @@ runs:
             echo '----------------------------------------------------------------'
             $new_values.GetEnumerator() | where { $old_values.ContainsKey($_.Name) -and $old_values[$_.Name] -ne $_.Value } | Format-List
 
-            # Update the current environment, sanitizing values to prevent newline injection:
-            Get-ChildItem env: | %{
-                $name = $_.Name -replace "`r|`n", ''
-                $value = $_.Value -replace "`r|`n", ''
-                echo "$name=$value" >> $env:GITHUB_ENV
+            # Update the current environment with only new or modified variables,
+            # stripping newlines to prevent GITHUB_ENV injection:
+            $new_values.GetEnumerator() | where {
+                (-not $old_values.ContainsKey($_.Name)) -or ($old_values[$_.Name] -ne $_.Value)
+            } | %{
+                $k = ($_.Name -replace "`r|`n", '')
+                $v = ($_.Value -replace "`r|`n", '')
+                echo "$k=$v" >> $env:GITHUB_ENV
             }
         }
       shell: pwsh

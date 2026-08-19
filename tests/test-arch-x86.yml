@@ -1,4 +1,4 @@
-name: Test basic usage (default arch)
+name: Test custom arch x86
 on:
   workflow_dispatch:
 jobs:
@@ -17,7 +17,9 @@ jobs:
           pwsh --version
       - id: action
         uses: .
-      - name: Assert action completed without error
+        with:
+          arch: x86
+      - name: Assert action completed without error for x86 arch
         run: |
-          echo "Action completed successfully on Linux (non-Windows skip path)"
+          echo "Action completed successfully on Linux with arch=x86 (non-Windows skip path)"
           echo "PASS"

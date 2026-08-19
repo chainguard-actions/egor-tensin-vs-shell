@@ -8,7 +8,7 @@
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
-**Harden Agent Version:** `1`
+**Harden Agent Version:** `2`
 
 Action **egor-tensin--vs-shell/v1** was hardened automatically. 4 finding(s) were identified and resolved across 2 iteration(s).
 
@@ -16,22 +16,22 @@ Action **egor-tensin--vs-shell/v1** was hardened automatically. 4 finding(s) wer
 
 ### script-injection (severity: high)
 
-Sub-rule (a): Four GitHub Actions expressions are directly interpolated inside the run: PowerShell script block, before the shell processes the string. (1) Line 55: `-DevCmdArguments '-arch=${{ inputs.arch }} -no_logo'` — the user-controlled `inputs.arch` value is injected directly into a PowerShell string passed as a command argument, enabling command injection. (2) Line 75: `-arch=${{ inputs.arch }} -no_logo` — same input injected into a cmd.exe invocation string. (3) Line 83: `if ('${{ runner.os }}' -ne 'Windows')` — runner.os is interpolated into a PowerShell comparison. (4) Line 84: `echo 'Not going to set up a Visual Studio shell on ${{ runner.os }}'` — runner.os interpolated into an echo. All four must be replaced with env: variables and safe shell variable references.
+Sub-rule (a): Four `${{ }}` expressions are interpolated directly inside the `run:` PowerShell block before the shell ever sees the value. Two use the attacker-controllable `inputs.arch` input: line 54 `-DevCmdArguments '-arch=${{ inputs.arch }} -no_logo'` and line 73 `-arch=${{ inputs.arch }} -no_logo`. Two use `runner.os`: line 83 `if ('${{ runner.os }}' -ne 'Windows')` and line 84 `echo 'Not going to set up a Visual Studio shell on ${{ runner.os }}'`. Any `${{ ... }}` expression directly inside a `run:` block is a script-injection risk because YAML template substitution occurs before the shell quotes the value, allowing injection of arbitrary PowerShell metacharacters.
 
 Locations:
 
-- `action.yml:55`
-- `action.yml:75`
+- `action.yml:54`
+- `action.yml:73`
 - `action.yml:83`
 - `action.yml:84`
 
 ### github-env-injection (severity: high)
 
-Line 113 writes every environment variable (including those inherited from the calling workflow, which are untrusted) to $GITHUB_ENV without any newline sanitization: `Get-ChildItem env: | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }`. An environment variable value containing a newline character could inject additional arbitrary key=value pairs into GITHUB_ENV, allowing an attacker to set arbitrary environment variables for subsequent steps. The required sanitization (`printf '%s' ... | tr -d '\n\r'` or equivalent) is absent.
+The `run:` block at line 110 writes every current environment variable — including any inherited from the calling workflow — to `$GITHUB_ENV` without sanitization: `Get-ChildItem env: | %{ echo "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }`. Because composite actions inherit the calling workflow's environment, any workflow-controlled env var containing newlines can inject arbitrary key=value pairs into GITHUB_ENV, enabling environment variable hijacking. The required newline-stripping sanitization is absent before the write.
 
 Locations:
 
-- `action.yml:113`
+- `action.yml:110`
 
 ### static-inline-injection (severity: high)
 
@@ -57,16 +57,20 @@ Locations:
 
 **Notes:**
 
-Rewrote action.yml to fix all findings: (1) Moved ${{ inputs.arch }} out of the run: block into env: INPUT_ARCH, then referenced it as $arch = $env:INPUT_ARCH in both Import-PS and Import-CMD functions. (2) Moved ${{ runner.os }} out of the run: block into env: RUNNER_OS_VAL, then referenced it as $runnerOs = $env:RUNNER_OS_VAL for the OS check and echo. (3) Fixed the GITHUB_ENV injection by sanitizing both variable names and values with PowerShell's -replace operator to strip carriage returns and newlines before writing to $GITHUB_ENV.
+Fixed all four findings in action.yml:
+1. Moved `${{ inputs.arch }}` and `${{ runner.os }}` from the run: PowerShell block into the step's env: block as INPUT_ARCH and RUNNER_OS. All references inside the script now use `$env:INPUT_ARCH` and `$env:RUNNER_OS` (safe PowerShell env var references).
+2. Sanitized the GITHUB_ENV write by stripping carriage returns and newlines from both key and value using PowerShell's `-replace "`r|`n", ''` before writing, preventing newline-based environment variable injection.
+3. The two static-inline-injection findings (lines 56, 77) were the same inputs.arch expressions in Import-PS and Import-CMD functions — fixed by the same env: block approach.
 
 ### Iteration 2
 
-**Fixes applied:** script-injection
+**Fixes applied:** unpinned-uses, missing-permissions, script-injection, github-env-injection
 
 **Notes:**
 
-Fixed script injection in action.yml at both locations (lines 57 and 76):
-1. In Import-PS: Added allowlist validation of $arch against @('x64', 'x86', 'arm', 'arm64') before it is interpolated into the -DevCmdArguments string passed to Enter-VsDevShell.
-2. In Import-CMD: Added the same allowlist validation of $arch before it is interpolated into the cmd.exe command string.
-Both functions now throw an error with a descriptive message if the arch value is not one of the known valid architectures, preventing injection of PowerShell or cmd.exe metacharacters.
+Fixed all four findings:
+1. **unpinned-uses** (.github/workflows/test.yml:34): Pinned `actions/checkout@v2` to full commit SHA `ee0669bd1cc54295c223e0bb666b733df41de1c5`.
+2. **missing-permissions** (.github/workflows/test.yml:1): Added `permissions: {}` top-level block to restrict default token permissions.
+3. **script-injection** (action.yml:57,80): Added allowlist validation for `$arch` in both `Import-PS` and `Import-CMD` functions. The value is checked against `@('x86', 'x64', 'arm', 'arm64')` before being interpolated into PowerShell/cmd strings, preventing injection of subexpressions.
+4. **github-env-injection** (action.yml:113): Changed the `$GITHUB_ENV` write loop to only forward environment variables that are **new or modified** after the VS shell setup (using the already-computed `$old_values`/`$new_values` diff), rather than all inherited environment variables. This prevents attacker-controlled inherited env vars from being forwarded to `$GITHUB_ENV`.
 

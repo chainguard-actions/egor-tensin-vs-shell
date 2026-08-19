@@ -1,4 +1,4 @@
-name: Test basic usage (default arch)
+name: Test custom arch arm64
 on:
   workflow_dispatch:
 jobs:
@@ -17,7 +17,9 @@ jobs:
           pwsh --version
       - id: action
         uses: .
-      - name: Assert action completed without error
+        with:
+          arch: arm64
+      - name: Assert action completed without error for arm64 arch
         run: |
-          echo "Action completed successfully on Linux (non-Windows skip path)"
+          echo "Action completed successfully on Linux with arch=arm64 (non-Windows skip path)"
           echo "PASS"
