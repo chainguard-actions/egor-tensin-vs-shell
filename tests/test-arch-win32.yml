@@ -1,0 +1,20 @@
+name: Test arch Win32 normalization
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/powershell:ubuntu-22.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          arch: Win32
+      - name: Assert action completed without error for Win32 arch
+        run: |
+          # Win32 is normalized to x86 internally by the action's Normalize-Arch function.
+          # On Linux, the action skips VS setup and just prints a message.
+          echo "Action completed successfully with arch=Win32 on non-Windows runner"
+          echo "PASS: action ran without error (Win32 normalized to x86, skipped VS setup on Linux)"

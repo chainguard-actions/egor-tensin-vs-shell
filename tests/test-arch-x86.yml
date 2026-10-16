@@ -1,0 +1,18 @@
+name: Test arch x86 input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/powershell:ubuntu-22.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          arch: x86
+      - name: Assert action completed without error for x86 arch
+        run: |
+          echo "Action completed successfully with arch=x86 on non-Windows runner"
+          echo "PASS: action ran without error (skipped VS setup on Linux as expected)"

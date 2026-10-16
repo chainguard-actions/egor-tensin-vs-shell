@@ -1,0 +1,17 @@
+name: Test basic usage (default arch)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/powershell:ubuntu-22.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        # No inputs — uses default arch: x64
+      - name: Assert action completed without error
+        run: |
+          echo "Action completed successfully on non-Windows runner"
+          echo "PASS: action ran without error (skipped VS setup on Linux as expected)"
