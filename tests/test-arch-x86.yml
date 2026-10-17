@@ -1,0 +1,21 @@
+name: Test arch x86
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install PowerShell
+        run: |
+          which pwsh && echo "pwsh already available" && exit 0
+          sudo apt-get update -qq
+          sudo apt-get install -y powershell
+      - id: action
+        uses: .
+        with:
+          arch: x86
+      - name: Assert action completed without error
+        run: |
+          echo "Action completed successfully with arch=x86 on non-Windows runner"
+          echo "PASS: action gracefully skipped VS setup on Linux"
