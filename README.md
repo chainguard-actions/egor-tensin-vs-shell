@@ -12,6 +12,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v2.2 | [`v2.2`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2) | [`54e4148`](https://github.com/egor-tensin/vs-shell/commit/54e4148eac794e4580591c2e0b7750f14b7891fc) |
 | v2.2.1 | [`v2.2.1`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.1) | [`5c4f0c8`](https://github.com/egor-tensin/vs-shell/commit/5c4f0c85efdec946bfbc8fed5424434f0916d608) |
 | v2.2.2 | [`v2.2.2`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.2) | [`77aef03`](https://github.com/egor-tensin/vs-shell/commit/77aef03865b2b9888668f622709822617f31505f) |
+| v2.2.3 | [`v2.2.3`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.3) | [`7710434`](https://github.com/egor-tensin/vs-shell/commit/7710434f30f873ff4ab78184b74cc576a10726d6) |
 
 ## Privacy
 
