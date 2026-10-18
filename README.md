@@ -1,17 +1,44 @@
-# egor-tensin/vs-shell
+Visual Studio shell
+===================
 
-Set up Visual Studio paths and environment variables
+[![Test](https://github.com/egor-tensin/vs-shell/actions/workflows/test.yml/badge.svg)](https://github.com/egor-tensin/vs-shell/actions/workflows/test.yml)
 
-Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/egor-tensin/vs-shell](https://github.com/egor-tensin/vs-shell).
+This GitHub action sets up a Visual Studio shell in your workflow run.
 
-## Versions
+This is similar to running one of the vcvars*.bat scripts or launching one of
+the "Command Tools for VS" Start Menu shortcuts, but it's also shell-agnostic.
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v1 | [`v1`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v1) | [`6d88c01`](https://github.com/egor-tensin/vs-shell/commit/6d88c01ad4b6b33190d261b45e241e462545652b) |
-| v2.2 | [`v2.2`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2) | [`54e4148`](https://github.com/egor-tensin/vs-shell/commit/54e4148eac794e4580591c2e0b7750f14b7891fc) |
-| v2.2.1 | [`v2.2.1`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.1) | [`5c4f0c8`](https://github.com/egor-tensin/vs-shell/commit/5c4f0c85efdec946bfbc8fed5424434f0916d608) |
-| v2.2.2 | [`v2.2.2`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.2) | [`77aef03`](https://github.com/egor-tensin/vs-shell/commit/77aef03865b2b9888668f622709822617f31505f) |
+Use it in your workflow like this:
+
+    - name: Set up Visual Studio shell
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
+
+* `x64` is the default value for the `arch` parameter and can be omitted.
+Use `x86` (or `Win32`) if you want to build 32-bit binaries.
+
+API
+---
+
+| Input | Value | Default | Description
+| ----- | ----- | ------- | -----------
+| arch  | x64   | ✓       | Build 64-bit executables
+|       | x86   |         | Build 32-bit executables
+|       | Win32 |         | Build 32-bit executables
+|       | arm64 |         | Only works on Windows ARM runners
+|       | arm   |         | Same as `arm64`
+
+The action passes the environment variables set by one of the vcvars*.bat
+scripts to the calling job.
+
+License
+-------
+
+Distributed under the MIT License.
+See [LICENSE.txt] for details.
+
+[LICENSE.txt]: LICENSE.txt
 
 ## Privacy
 
