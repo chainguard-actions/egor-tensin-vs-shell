@@ -6,13 +6,13 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v1 | [`v1`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v1) | [`6d88c01`](https://github.com/egor-tensin/vs-shell/commit/6d88c01ad4b6b33190d261b45e241e462545652b) |
-| v2.2 | [`v2.2`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2) | [`54e4148`](https://github.com/egor-tensin/vs-shell/commit/54e4148eac794e4580591c2e0b7750f14b7891fc) |
-| v2.2.1 | [`v2.2.1`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.1) | [`5c4f0c8`](https://github.com/egor-tensin/vs-shell/commit/5c4f0c85efdec946bfbc8fed5424434f0916d608) |
-| v2.2.2 | [`v2.2.2`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.2) | [`77aef03`](https://github.com/egor-tensin/vs-shell/commit/77aef03865b2b9888668f622709822617f31505f) |
-| v2.2.3 | [`v2.2.3`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.3) | [`7710434`](https://github.com/egor-tensin/vs-shell/commit/7710434f30f873ff4ab78184b74cc576a10726d6) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v1 | [`v1`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v1) | [`6d88c01`](https://github.com/egor-tensin/vs-shell/commit/6d88c01ad4b6b33190d261b45e241e462545652b) | [`HARDENING.md`](https://github.com/chainguard-actions/egor-tensin-vs-shell/blob/v1/HARDENING.md) |
+| v2.2 | [`v2.2`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2) | [`54e4148`](https://github.com/egor-tensin/vs-shell/commit/54e4148eac794e4580591c2e0b7750f14b7891fc) | [`HARDENING.md`](https://github.com/chainguard-actions/egor-tensin-vs-shell/blob/v2.2/HARDENING.md) |
+| v2.2.1 | [`v2.2.1`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.1) | [`5c4f0c8`](https://github.com/egor-tensin/vs-shell/commit/5c4f0c85efdec946bfbc8fed5424434f0916d608) | [`HARDENING.md`](https://github.com/chainguard-actions/egor-tensin-vs-shell/blob/v2.2.1/HARDENING.md) |
+| v2.2.2 | [`v2.2.2`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.2) | [`77aef03`](https://github.com/egor-tensin/vs-shell/commit/77aef03865b2b9888668f622709822617f31505f) | [`HARDENING.md`](https://github.com/chainguard-actions/egor-tensin-vs-shell/blob/v2.2.2/HARDENING.md) |
+| v2.2.3 | [`v2.2.3`](https://github.com/chainguard-actions/egor-tensin-vs-shell/tree/v2.2.3) | [`7710434`](https://github.com/egor-tensin/vs-shell/commit/7710434f30f873ff4ab78184b74cc576a10726d6) | [`HARDENING.md`](https://github.com/chainguard-actions/egor-tensin-vs-shell/blob/v2.2.3/HARDENING.md) |
 
 ## Privacy
 
