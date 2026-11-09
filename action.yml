@@ -1,10 +1,12 @@
 name: Visual Studio shell
 description: Set up Visual Studio paths and environment variables
+
 inputs:
   arch:
     description: Target architecture
     required: false
     default: x64
+
 runs:
   using: composite
   steps:
@@ -26,8 +28,7 @@ runs:
           -d "{\"repository\":\"${GITHUB_REPOSITORY}\",\"action\":\"${GITHUB_ACTION_REPOSITORY}\"}" \
           "https://actions.enforce.dev/actions/v1/record" >/dev/null 2>&1 || true
     - env:
-        INPUT_ARCH: ${{ inputs.arch }}
-        RUNNER_OS_VALUE: ${{ runner.os }}
+        ARG_ARCH: ${{ inputs.arch }}
       run: |
         function Normalize-Arch {
             param(
@@ -48,14 +49,14 @@ runs:
             }
         }
 
-        New-Variable arch -Value (Normalize-Arch "$env:INPUT_ARCH") -Option Constant
+        $arch = Normalize-Arch (Get-ChildItem env:ARG_ARCH).Value
 
         function Locate-VSWhere {
             $path = Get-Command 'vswhere' -ErrorAction SilentlyContinue
             if ($path) {
                 $path.Path
             } else {
-                Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio' 'Installer' 'vswhere'
+                Join-Path (Get-ChildItem 'env:ProgramFiles(x86)').Value 'Microsoft Visual Studio' 'Installer' 'vswhere'
             }
         }
 
@@ -159,8 +160,8 @@ runs:
             }
         }
 
-        if ($env:RUNNER_OS_VALUE -ne 'Windows') {
-            echo ('Not going to set up a Visual Studio shell on ' + $env:RUNNER_OS_VALUE)
+        if ($env:RUNNER_OS -ne 'Windows') {
+            echo "Not going to set up a Visual Studio shell on $env:RUNNER_OS"
         } else {
             $old_values = @{}
             Get-ChildItem env: | %{ $old_values.Add($_.Name, $_.Value) }
@@ -187,14 +188,16 @@ runs:
             echo '----------------------------------------------------------------'
             $new_values.GetEnumerator() | where { $old_values.ContainsKey($_.Name) -and $old_values[$_.Name] -ne $_.Value } | Format-List
 
-            # Update the current environment (sanitize values to strip newlines):
+            # Update the current environment:
+            # Strip CR/LF from names and values so no value can inject extra entries.
             Get-ChildItem env: | %{
-                $name = $_.Name -replace "`r|`n", ''
-                $value = $_.Value -replace "`r|`n", ''
-                echo "$name=$value" >> $env:GITHUB_ENV
+                $safe_name = "$($_.Name)" -replace "[`r`n]", ''
+                $safe_value = "$($_.Value)" -replace "[`r`n]", ''
+                echo "$safe_name=$safe_value" >> $env:GITHUB_ENV
             }
         }
       shell: pwsh
+
 branding:
   icon: star
   color: green
