@@ -51,6 +51,12 @@ runs:
 
         $arch = Normalize-Arch (Get-ChildItem env:ARG_ARCH).Value
 
+        # Only allow known architecture values; the value is passed to cmd.exe.
+        $allowed_archs = 'x86','x64','amd64','arm','arm64'
+        if ($allowed_archs -notcontains $arch) {
+            throw "Unsupported architecture: '$arch' (allowed: $($allowed_archs -join ', '), Win32)"
+        }
+
         function Locate-VSWhere {
             $path = Get-Command 'vswhere' -ErrorAction SilentlyContinue
             if ($path) {
@@ -189,13 +195,11 @@ runs:
             $new_values.GetEnumerator() | where { $old_values.ContainsKey($_.Name) -and $old_values[$_.Name] -ne $_.Value } | Format-List
 
             # Update $GITHUB_ENV with only new/modified variables introduced by the VS
-            # setup (sanitize values to strip newlines before writing).
-            # Writing only the diff prevents attacker-controlled env vars (e.g. ARG_ARCH)
-            # and other inherited caller env vars from being injected into $GITHUB_ENV.
+            # setup, stripping CR/LF from values so nothing can inject extra entries.
             $new_values.GetEnumerator() | where {
                 -not $old_values.ContainsKey($_.Name) -or $old_values[$_.Name] -ne $_.Value
             } | %{
-                $sanitizedValue = $_.Value -replace "`r", "" -replace "`n", ""
+                $sanitizedValue = $_.Value -replace "[`r`n]", ""
                 echo "$($_.Name)=$sanitizedValue" >> $env:GITHUB_ENV
             }
         }
