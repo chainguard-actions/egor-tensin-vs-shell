@@ -51,6 +51,12 @@ runs:
 
         $arch = Normalize-Arch (Get-ChildItem env:ARG_ARCH).Value
 
+        # The architecture is passed to cmd.exe, which re-parses it; only
+        # allow known-safe values.
+        if ($arch -notmatch '^(x86|x64|amd64|arm|arm64)$') {
+            throw "Unsupported architecture: '$arch' (expected one of: x86, Win32, x64, amd64, arm, arm64)"
+        }
+
         function Locate-VSWhere {
             $path = Get-Command 'vswhere' -ErrorAction SilentlyContinue
             if ($path) {
